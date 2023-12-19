@@ -10,6 +10,7 @@ import numpy as np
 import shutil
 import tempfile
 import os
+import uuid
 
 app = FastAPI()
 app.mount("/temp", StaticFiles(directory="./temp"), name="temp")
@@ -47,23 +48,19 @@ async def predict(file: UploadFile):
     age_model = tf.keras.models.load_model('../notebooks/saved_model/')
     ori_file_path = save_temp_file(file, TEMP_DIR)
 
-    img = cv2.imread(ori_file_path, cv2.IMREAD_COLOR)
+    img = cv2.imread(ori_file_path)
     
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(
-        gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40)
-    )
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
     cropped_face = None
     prediction_results = list()
-    i=0
     # Check if any faces are detected
     if len(faces) > 0:
         for(x, y, w, h) in faces:
-            file_extension = '_face_{i}.jpg'.format(i=i)
-            i+=1
-            file_name = file.filename.replace('.jpg', file_extension)
+            # replace original file name with the cropped face
+            file_name = str(uuid.uuid4()) + ".jpg"
             processed_file_url = f"./temp/{file_name}"
             cropped_face = img[y:y + h, x:x + w]
             

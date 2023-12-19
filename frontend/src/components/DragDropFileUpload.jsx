@@ -77,7 +77,7 @@ function DragDropFileUpload({ onFileUpload }) {
         }}
       >
         <input
-          accept="image/*"
+          accept="image/jpeg"
           style={{ display: "none" }}
           id="raised-button-file"
           multiple
